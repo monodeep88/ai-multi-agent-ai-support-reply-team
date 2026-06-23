@@ -1,0 +1,132 @@
+{
+  "mode": "ai",
+  "project_title": "AI Support Reply Assistant",
+  "short_description": "An AI-powered multi-agent system to assist support teams by categorizing incoming tickets and drafting initial replies using a knowledge base.",
+  "domain_summary": "Customer support often involves repetitive tasks like categorizing tickets and drafting replies based on common issues. This project automates these initial steps using a collaborative AI agent team, improving efficiency and response times for support agents. It focuses on handling common, well-documented queries, allowing human agents to focus on complex or unique customer problems.",
+  "user_persona": "Support Agent Sarah: Sarah is a customer support agent who frequently receives common customer inquiries. She wants a tool that can quickly categorize tickets and provide a first draft of a reply, referencing relevant information, so she can review, refine, and send it faster. She values accuracy, context, and efficiency.",
+  "architecture_notes": [
+    "For a beginner project, SQLite is chosen for simplicity and zero-configuration setup. The LLM provider can be a cloud-based API (requiring API keys, which are external to this blueprint) or a local LLM run via a lightweight server. Vector database for KB is optional but recommended for better retrieval, a simple in-memory or file-backed vector store is sufficient. The multi-agent system will reside within the FastAPI application for direct control and easier debugging. Frontend will display ticket states and agent-generated outputs. Communication is primarily RESTful HTTP."
+  ],
+  "backend_modules": [
+    "Ticket Management: API endpoints for creating, retrieving, updating, and listing support tickets. Triggers agent processing upon new ticket creation.",
+    "Agent Orchestration: Manages the lifecycle of agent tasks, dispatches tickets to agents, collects agent outputs, and stores them.",
+    "Knowledge Base Integration: Provides an interface for agents to query and retrieve relevant information from the knowledge base.",
+    "Configuration & Health: Endpoints for application health checks and basic configuration retrieval."
+  ],
+  "frontend_features": [
+    "Ticket List View: Displays all support tickets with their current status (New, Categorized, Reply Drafted, etc.).",
+    "Ticket Detail View: Shows full ticket description, agent-generated category, and drafted reply. Allows human agent to edit and mark as 'sent'.",
+    "New Ticket Submission: Form for manually adding a new support ticket (simulating external intake).",
+    "Knowledge Base Search (Optional): Allows agents to manually search the knowledge base."
+  ],
+  "data_sources": [
+    "User-submitted Tickets: Input from customers describing their issues. Simulated via manual input form.",
+    "Internal Knowledge Base: A collection of articles, FAQs, and common solutions. Stored as text files or in the SQLite DB, indexed by a vector store."
+  ],
+  "testing_strategy": [
+    "Test individual backend functions, API endpoints, and agent tool implementations (e.g., KnowledgeBaseSearch).",
+    "Verify the flow from API call to agent orchestration and data persistence. Test full ticket processing from creation to reply generation.",
+    "Provide a diverse set of sample tickets and assert that agents produce expected categories and reasonable reply drafts. Focus on correct tool usage and appropriate response structure, not just exact wording.",
+    "Use Cypress or Playwright to simulate user interactions and verify UI responsiveness and data display."
+  ],
+  "starter_questions": [
+    "How would you integrate this system with an existing CRM?",
+    "What are the challenges of making AI-generated replies sound human and empathetic?",
+    "How can you improve the knowledge base search accuracy for agents?",
+    "What security considerations are important when handling customer data?",
+    "How would you scale this system to handle thousands of tickets daily?"
+  ],
+  "workflow_steps": [
+    "1: User creates a new support ticket via the frontend (or it's ingested by the backend).",
+    "2: Backend API receives the new ticket and stores it in the database with status 'New'.",
+    "3: Backend triggers the 'TicketCategorizer' agent with the new ticket's description.",
+    "4: TicketCategorizer agent analyzes the description and assigns a predefined category (e.g., 'Billing', 'Technical Issue', 'Feature Request').",
+    "5: The assigned category is saved back to the ticket in the database, and the ticket status updates to 'Categorized'.",
+    "6: Backend triggers the 'ReplyGenerator' agent with the ticket description and the newly assigned category.",
+    "7: ReplyGenerator agent uses the 'KnowledgeBaseSearch' tool to find relevant articles based on the ticket description and category.",
+    "8: ReplyGenerator agent drafts a reply incorporating information from the retrieved knowledge base articles, maintaining a helpful and professional tone."
+  ],
+  "business_rules": [
+    "All new tickets must be categorized within 5 minutes of creation.",
+    "A reply draft must be generated for all categorized tickets.",
+    "Reply drafts should always include a polite closing and suggest next steps if applicable.",
+    "Knowledge base articles are the primary source of factual information for replies; agents should not 'hallucinate' solutions.",
+    "The system should flag tickets as 'Complex' if agents cannot find relevant KB articles or categorize with high confidence.",
+    "Maximum length for generated replies should be 300 words to keep them concise."
+  ],
+  "sample_documents": [
+    {
+      "filename": "ticket_001.txt",
+      "content": "Subject: Unable to log in\n\nHi team, I'm having trouble logging into my account. I reset my password twice, but it still says 'Invalid credentials'. My username is 'johndoe'. Please help!"
+    },
+    {
+      "filename": "ticket_002.txt",
+      "content": "Subject: Question about my latest bill\n\nHello, I received my bill for January, and it seems higher than usual. I was expecting $50 but it's showing $75. Could you explain the extra charges?"
+    },
+    {
+      "filename": "kb_article_password_reset.txt",
+      "content": "How to Reset Your Password:\nIf you are experiencing issues logging in, please follow these steps:\n1. Go to the login page.\n2. Click 'Forgot Password'.\n3. Enter your registered email address.\n4. Check your inbox for a password reset link.\n5. Click the link and set a new password. Ensure your new password meets complexity requirements (at least 8 characters, one uppercase, one number, one symbol). If issues persist, clear your browser cache or try an incognito window."
+    },
+    {
+      "filename": "kb_article_billing_faq.txt",
+      "content": "Billing FAQ:\nQ: Why is my bill higher than expected?\nA: Common reasons for higher bills include:\n   - Usage beyond your plan's limits.\n   - One-time charges for premium features.\n   - Renewal of annual subscriptions.\n   - Tax adjustments or regulatory fees.\n   Please refer to your detailed bill statement in your account portal for a breakdown. If you still have questions, contact our billing department."
+    }
+  ],
+  "tool_catalog": [
+    {
+      "name": "KnowledgeBaseSearch",
+      "description": "Searches the internal knowledge base for articles relevant to a given query or topic. Returns relevant article snippets."
+    },
+    {
+      "name": "SaveReplyDraft",
+      "description": "Stores the generated reply draft associated with a specific ticket ID in the database. (Internal system tool, not directly called by agent prompt)."
+    }
+  ],
+  "agent_plan": [
+    {
+      "name": "Architecture Agent",
+      "role": "Define app boundaries, data flow, runtime stack, and integration points.",
+      "outputs": []
+    },
+    {
+      "name": "Backend Agent",
+      "role": "Design FastAPI modules, service contracts, validation, and error handling.",
+      "outputs": []
+    },
+    {
+      "name": "Frontend Agent",
+      "role": "Design React screens, state flow, controls, and user feedback states.",
+      "outputs": []
+    },
+    {
+      "name": "Database Agent",
+      "role": "Design persistence models, sample data, indexes, and audit records.",
+      "outputs": []
+    },
+    {
+      "name": "Testing Agent",
+      "role": "Define contract tests, smoke tests, and generated project validation.",
+      "outputs": []
+    }
+  ],
+  "model_provider": "gemini",
+  "model_name": "gemini-2.5-flash",
+  "fallback_reason": "OpenAI limit reached. Automatically switched to Gemini.",
+  "architecture": "Content Writing Team",
+  "architecture_template_id": 23,
+  "architecture_template_path": "templates/multi-agent-ai/content-writing-team",
+  "architecture_description": "Content Writing Team for multi-agent content drafting.",
+  "architecture_version": "1.0",
+  "architecture_origin": "built_in",
+  "architecture_quality_score": 100,
+  "architecture_evolution_notes": "",
+  "architecture_technology": null,
+  "architecture_source_version": null,
+  "validation_pipeline": [
+    "pytest",
+    "npm install",
+    "npm run build",
+    "docker compose config",
+    "docker compose build"
+  ]
+}
